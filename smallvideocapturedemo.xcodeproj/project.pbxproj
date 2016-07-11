@@ -8,20 +8,32 @@
 
 /* Begin PBXBuildFile section */
 		F6F5CB581D3370720057DC1C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB571D3370720057DC1C /* AppDelegate.swift */; };
-		F6F5CB5A1D3370720057DC1C /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB591D3370720057DC1C /* ViewController.swift */; };
-		F6F5CB5D1D3370720057DC1C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F6F5CB5B1D3370720057DC1C /* Main.storyboard */; };
 		F6F5CB5F1D3370720057DC1C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F6F5CB5E1D3370720057DC1C /* Assets.xcassets */; };
 		F6F5CB621D3370720057DC1C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F6F5CB601D3370720057DC1C /* LaunchScreen.storyboard */; };
+		F6F5CB6A1D3371410057DC1C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F6F5CB691D3371410057DC1C /* Main.storyboard */; };
+		F6F5CB7D1D3373380057DC1C /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB7C1D3373380057DC1C /* README.md */; };
+		F6F5CB7F1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB7E1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift */; };
+		F6F5CB821D3374D30057DC1C /* IDPermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB801D3374D30057DC1C /* IDPermissionsManager.swift */; };
+		F6F5CB831D3374D30057DC1C /* IDFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB811D3374D30057DC1C /* IDFileManager.swift */; };
+		F6F5CB861D33752C0057DC1C /* IDCaptureSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB851D33752C0057DC1C /* IDCaptureSessionCoordinator.swift */; };
+		F6F5CB891D3379C60057DC1C /* IDCaptureSessionAssetWriterCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB881D3379C60057DC1C /* IDCaptureSessionAssetWriterCoordinator.swift */; };
+		F6F5CB8B1D337C880057DC1C /* IDAssetWriterCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB8A1D337C880057DC1C /* IDAssetWriterCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		F6F5CB541D3370720057DC1C /* smallvideocapturedemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = smallvideocapturedemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6F5CB571D3370720057DC1C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		F6F5CB591D3370720057DC1C /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		F6F5CB5C1D3370720057DC1C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		F6F5CB5E1D3370720057DC1C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F6F5CB611D3370720057DC1C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F6F5CB631D3370720057DC1C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F6F5CB691D3371410057DC1C /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		F6F5CB7C1D3373380057DC1C /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		F6F5CB7E1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IDCaptureSessionPipelineViewController.swift; sourceTree = "<group>"; };
+		F6F5CB801D3374D30057DC1C /* IDPermissionsManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IDPermissionsManager.swift; sourceTree = "<group>"; };
+		F6F5CB811D3374D30057DC1C /* IDFileManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IDFileManager.swift; sourceTree = "<group>"; };
+		F6F5CB851D33752C0057DC1C /* IDCaptureSessionCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IDCaptureSessionCoordinator.swift; sourceTree = "<group>"; };
+		F6F5CB881D3379C60057DC1C /* IDCaptureSessionAssetWriterCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IDCaptureSessionAssetWriterCoordinator.swift; sourceTree = "<group>"; };
+		F6F5CB8A1D337C880057DC1C /* IDAssetWriterCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IDAssetWriterCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,14 +66,44 @@
 		F6F5CB561D3370720057DC1C /* smallvideocapturedemo */ = {
 			isa = PBXGroup;
 			children = (
+				F6F5CB841D3374D90057DC1C /* Utilities */,
 				F6F5CB571D3370720057DC1C /* AppDelegate.swift */,
-				F6F5CB591D3370720057DC1C /* ViewController.swift */,
-				F6F5CB5B1D3370720057DC1C /* Main.storyboard */,
+				F6F5CB871D33755E0057DC1C /* AVFoundation */,
+				F6F5CB7E1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift */,
 				F6F5CB5E1D3370720057DC1C /* Assets.xcassets */,
 				F6F5CB601D3370720057DC1C /* LaunchScreen.storyboard */,
+				F6F5CB691D3371410057DC1C /* Main.storyboard */,
 				F6F5CB631D3370720057DC1C /* Info.plist */,
+				F6F5CB7C1D3373380057DC1C /* README.md */,
 			);
 			path = smallvideocapturedemo;
+			sourceTree = "<group>";
+		};
+		F6F5CB841D3374D90057DC1C /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				F6F5CB801D3374D30057DC1C /* IDPermissionsManager.swift */,
+				F6F5CB811D3374D30057DC1C /* IDFileManager.swift */,
+			);
+			name = Utilities;
+			sourceTree = "<group>";
+		};
+		F6F5CB871D33755E0057DC1C /* AVFoundation */ = {
+			isa = PBXGroup;
+			children = (
+				F6F5CB851D33752C0057DC1C /* IDCaptureSessionCoordinator.swift */,
+				F6F5CB8C1D337C900057DC1C /* AVAssetWriter */,
+			);
+			name = AVFoundation;
+			sourceTree = "<group>";
+		};
+		F6F5CB8C1D337C900057DC1C /* AVAssetWriter */ = {
+			isa = PBXGroup;
+			children = (
+				F6F5CB8A1D337C880057DC1C /* IDAssetWriterCoordinator.swift */,
+				F6F5CB881D3379C60057DC1C /* IDCaptureSessionAssetWriterCoordinator.swift */,
+			);
+			name = AVAssetWriter;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -123,9 +165,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6F5CB6A1D3371410057DC1C /* Main.storyboard in Resources */,
 				F6F5CB621D3370720057DC1C /* LaunchScreen.storyboard in Resources */,
 				F6F5CB5F1D3370720057DC1C /* Assets.xcassets in Resources */,
-				F6F5CB5D1D3370720057DC1C /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,22 +178,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6F5CB5A1D3370720057DC1C /* ViewController.swift in Sources */,
+				F6F5CB7D1D3373380057DC1C /* README.md in Sources */,
+				F6F5CB7F1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift in Sources */,
+				F6F5CB821D3374D30057DC1C /* IDPermissionsManager.swift in Sources */,
+				F6F5CB861D33752C0057DC1C /* IDCaptureSessionCoordinator.swift in Sources */,
+				F6F5CB891D3379C60057DC1C /* IDCaptureSessionAssetWriterCoordinator.swift in Sources */,
+				F6F5CB831D3374D30057DC1C /* IDFileManager.swift in Sources */,
 				F6F5CB581D3370720057DC1C /* AppDelegate.swift in Sources */,
+				F6F5CB8B1D337C880057DC1C /* IDAssetWriterCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		F6F5CB5B1D3370720057DC1C /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F6F5CB5C1D3370720057DC1C /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		F6F5CB601D3370720057DC1C /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -291,6 +331,7 @@
 				F6F5CB681D3370720057DC1C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
