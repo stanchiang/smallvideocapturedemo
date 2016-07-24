@@ -140,8 +140,7 @@ class IDAssetWriterCoordinator: NSObject {
                     self.error = self.assetWriter.error
                 }
             }
-            let lockQueue = dispatch_queue_create("com.test.LockQueue", nil)
-            dispatch_sync(lockQueue) {
+            dispatch_sync(self.lockQueue) {
                 if self.error != nil {
                     self.transitionToStatus(WriterStatus.Failed, error: self.error!)
                 }
@@ -216,31 +215,33 @@ class IDAssetWriterCoordinator: NSObject {
             }
         }
         dispatch_async(writingQueue, {() -> Void in
-            dispatch_sync(self.lockQueue) {
-//                    // From the client's perspective the movie recorder can asynchronously transition to an error state as the result of an append.
-//                    // Because of this we are lenient when samples are appended and we are no longer recording.
-//                    // Instead of throwing an exception we just release the sample buffers and return.
-//                    if status > WriterStatus.FinishingRecordingPart1 {
-//                        CFRelease(sampleBuffer)
-//                        return
-//                    }
-            }
             if !self.haveStartedSession && mediaType == AVMediaTypeVideo {
                 self.assetWriter.startSessionAtSourceTime(CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
                 self.haveStartedSession = true
             }
+            
             let input: AVAssetWriterInput = (mediaType == AVMediaTypeVideo) ? self.videoInput : self.audioInput
             if input.readyForMoreMediaData {
-                let success: Bool = input.appendSampleBuffer(sampleBuffer)
-                if !success {
+                
+                //1. apply opencv processing to samplebuffer video frame
+                let newBufferRef = self.applyOpenCV(sampleBuffer)
+                
+                
+                //2. append processed video frame to receiver
+                let successful: Bool = input.appendSampleBuffer(sampleBuffer)
+                if !successful {
                     self.error = self.assetWriter.error
-                    let lockQueue = dispatch_queue_create("com.test.LockQueue", nil)
-                    dispatch_sync(lockQueue) {
+                    dispatch_sync(self.lockQueue) {
                         self.transitionToStatus(WriterStatus.Failed, error: self.error)
                     }
                 }
-            }
-            else {
+                
+                //encode videos to mp4 or ts in 5 second chunks to server
+                if successful && CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds > 5.0 {
+                    
+                }
+                
+            }else {
                 print("\(mediaType) input not ready for more media data, dropping buffer")
             }
         })
@@ -293,4 +294,8 @@ class IDAssetWriterCoordinator: NSObject {
         }
     }
 
+    func applyOpenCV(sampleBuffer: CMSampleBufferRef){
+        let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+        
+    }
 }

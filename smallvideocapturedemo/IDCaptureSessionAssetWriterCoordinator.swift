@@ -133,8 +133,6 @@ class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAss
                 // Don't render the first sample buffer.
                 // This gives us one frame interval (33ms at 30fps) for setupVideoPipelineWithInputFormatDescription: to complete.
                 // Ideally this would be done asynchronously to ensure frames don't back up on slower devices.
-                //TODO: outputVideoFormatDescription should be updated whenever video configuration is changed (frame rate, etc.)
-                //Currently we don't use the outputVideoFormatDescription in IDAssetWriterRecoredSession
                 self.setupVideoPipelineWithInputFormatDescription(formatDescription)
             }
             else {
