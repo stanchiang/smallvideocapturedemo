@@ -116,10 +116,6 @@ class IDAssetWriterCoordinator: NSObject {
             
             // Create and add inputs
             if (self.error == nil) && (self.videoTrackSourceFormatDescription != nil) {
-                //                self.setupAssetWriterVideoInputWithSourceFormatDescription(self.videoTrackSourceFormatDescription, transform: self.videoTrackTransform, settings: self.videoTrackSettings, error: self.error)
-                
-                //                func setupAssetWriterVideoInputWithSourceFormatDescription(videoFormatDescription: CMFormatDescriptionRef, transform: CGAffineTransform, settings videoSettings: [String : AnyObject], error errorOut: NSError?) -> Bool {
-                
                 if self.assetWriter.canApplyOutputSettings(self.videoTrackSettings, forMediaType: AVMediaTypeVideo) {
                     self.videoInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: self.videoTrackSettings, sourceFormatHint: self.videoTrackSourceFormatDescription)
                     self.videoInput.transform = self.videoTrackTransform
@@ -130,8 +126,6 @@ class IDAssetWriterCoordinator: NSObject {
                 }
             }
             if (self.error == nil) && (self.audioTrackSourceFormatDescription != nil) {
-                //                self.setupAssetWriterAudioInputWithSourceFormatDescription(self.audioTrackSourceFormatDescription, settings: self.audioTrackSettings, error: self.error!)
-                //                func setupAssetWriterAudioInputWithSourceFormatDescription(audioFormatDescription: CMFormatDescriptionRef, settings audioSettings: [String : AnyObject], error errorOut: NSError?) -> Bool {
                 if self.assetWriter.canApplyOutputSettings(self.audioTrackSettings, forMediaType: AVMediaTypeAudio) {
                     self.audioInput = AVAssetWriterInput(mediaType: AVMediaTypeAudio, outputSettings: self.audioTrackSettings, sourceFormatHint: self.audioTrackSourceFormatDescription)
                     self.audioInput.expectsMediaDataInRealTime = true
@@ -253,13 +247,10 @@ class IDAssetWriterCoordinator: NSObject {
     }
     
     func transitionToStatus(newStatus: WriterStatus, error: NSError?) {
-//        print("going from \(status.rawValue) to \(rawValue)")
         var shouldNotifyDelegate: Bool = false
         if newStatus != status {
             // terminal states
-//            print("if (\(rawValue) == \(WriterStatus.Finished.rawValue)) || (\(rawValue) == \(WriterStatus.Failed.rawValue))")
             if (newStatus == WriterStatus.Finished) || (newStatus == WriterStatus.Failed) {
-//                print("i should be \(WriterStatus.Finished.rawValue) or \(WriterStatus.Failed.rawValue). i am actually \(rawValue)")
                 shouldNotifyDelegate = true
                 // make sure there are no more sample buffers in flight before we tear down the asset writer and inputs
                 dispatch_async(writingQueue, {() -> Void in
@@ -270,26 +261,18 @@ class IDAssetWriterCoordinator: NSObject {
                         do {
                             try NSFileManager.defaultManager().removeItemAtURL(self.URL)
                         } catch _ {
-//                            print("NSFileManager.defaultManager().removeItemAtURL error: \(error?.localizedDescription)")
+                            print("NSFileManager.defaultManager().removeItemAtURL error: \(error?.localizedDescription)")
                         }
                     }
                 })
             } else if newStatus == WriterStatus.Recording {
-//                print("shouldNotifyDelegate will set to true")
                 shouldNotifyDelegate = true
-            } else {
-//                print("i am \(rawValue), not \(WriterStatus.Finished.rawValue), not \(WriterStatus.Failed.rawValue), not \(WriterStatus.Recording.rawValue)")
             }
             
             self.status = newStatus
         }
         
-//        print(shouldNotifyDelegate)
-//        print(delegate)
-        if (shouldNotifyDelegate) {// && (self.delegate != nil)) {
-            print("gonna call delegatecallbackqueue")
-            print(delegateCallbackQueue)
-            print("....")
+        if (shouldNotifyDelegate) {
             dispatch_async(delegateCallbackQueue, {() -> Void in
                 switch newStatus {
                 case WriterStatus.Recording:

@@ -31,7 +31,6 @@ class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAss
     var outputVideoFormatDescription: CMFormatDescriptionRef!
     var outputAudioFormatDescription: CMFormatDescriptionRef!
     var recordingURL: NSURL!
-//    var delegateCallbackQueue: dispatch_queue_t?
     
     private var videoDataOutput: AVCaptureVideoDataOutput!
     private var audioDataOutput: AVCaptureAudioDataOutput!
@@ -205,7 +204,6 @@ class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAss
                 })
             }
             else {
-                //                error = nil
                 // only the above delegate method takes an error
                 if oldStatus == RecordingStatus.StartingRecording && newStatus == RecordingStatus.Recording {
                     dispatch_async(self.delegateCallbackQueue!, {() -> Void in
