@@ -10,7 +10,6 @@
 		F6F5CB581D3370720057DC1C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB571D3370720057DC1C /* AppDelegate.swift */; };
 		F6F5CB5F1D3370720057DC1C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F6F5CB5E1D3370720057DC1C /* Assets.xcassets */; };
 		F6F5CB621D3370720057DC1C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F6F5CB601D3370720057DC1C /* LaunchScreen.storyboard */; };
-		F6F5CB6A1D3371410057DC1C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F6F5CB691D3371410057DC1C /* Main.storyboard */; };
 		F6F5CB7D1D3373380057DC1C /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB7C1D3373380057DC1C /* README.md */; };
 		F6F5CB7F1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB7E1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift */; };
 		F6F5CB821D3374D30057DC1C /* IDPermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F5CB801D3374D30057DC1C /* IDPermissionsManager.swift */; };
@@ -26,7 +25,6 @@
 		F6F5CB5E1D3370720057DC1C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F6F5CB611D3370720057DC1C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F6F5CB631D3370720057DC1C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F6F5CB691D3371410057DC1C /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		F6F5CB7C1D3373380057DC1C /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		F6F5CB7E1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IDCaptureSessionPipelineViewController.swift; sourceTree = "<group>"; };
 		F6F5CB801D3374D30057DC1C /* IDPermissionsManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IDPermissionsManager.swift; sourceTree = "<group>"; };
@@ -66,13 +64,12 @@
 		F6F5CB561D3370720057DC1C /* smallvideocapturedemo */ = {
 			isa = PBXGroup;
 			children = (
-				F6F5CB841D3374D90057DC1C /* Utilities */,
 				F6F5CB571D3370720057DC1C /* AppDelegate.swift */,
+				F6F5CB841D3374D90057DC1C /* Utilities */,
 				F6F5CB871D33755E0057DC1C /* AVFoundation */,
 				F6F5CB7E1D33737A0057DC1C /* IDCaptureSessionPipelineViewController.swift */,
 				F6F5CB5E1D3370720057DC1C /* Assets.xcassets */,
 				F6F5CB601D3370720057DC1C /* LaunchScreen.storyboard */,
-				F6F5CB691D3371410057DC1C /* Main.storyboard */,
 				F6F5CB631D3370720057DC1C /* Info.plist */,
 				F6F5CB7C1D3373380057DC1C /* README.md */,
 			);
@@ -165,7 +162,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6F5CB6A1D3371410057DC1C /* Main.storyboard in Resources */,
 				F6F5CB621D3370720057DC1C /* LaunchScreen.storyboard in Resources */,
 				F6F5CB5F1D3370720057DC1C /* Assets.xcassets in Resources */,
 			);

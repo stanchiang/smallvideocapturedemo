@@ -12,18 +12,34 @@ import AVFoundation
 class IDCaptureSessionPipelineViewController: UIViewController, IDCaptureSessionCoordinatorDelegate {
     
     var captureSessionCoordinator: IDCaptureSessionCoordinator = IDCaptureSessionAssetWriterCoordinator()
-    @IBOutlet var recordButton: UIBarButtonItem!
+    var recordButton: UIBarButtonItem!
+    var closeButton: UIBarButtonItem!
     var recording: Bool = false
     var dismissing: Bool = false
+    let toolbar = UIToolbar()
     
     override func viewDidLoad() {
+        let spacer = UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: self, action: nil)
+        recordButton = UIBarButtonItem(title: "Record", style: UIBarButtonItemStyle.Plain, target: self, action: #selector(toggleRecording(_:)))
+        closeButton = UIBarButtonItem(title: "Close", style: UIBarButtonItemStyle.Plain, target: self, action: #selector(closeCamera(_:)))
+        
+        toolbar.translatesAutoresizingMaskIntoConstraints = false
+        toolbar.items = [spacer, closeButton, spacer, recordButton, spacer]
+        view.addSubview(toolbar)
         
         self.checkPermissions()
         captureSessionCoordinator.setDelegate(self, callbackQueue: dispatch_get_main_queue())
         self.configureInterface()
     }
+    
+    override func viewDidLayoutSubviews() {
+        toolbar.leadingAnchor.constraintEqualToAnchor(view.leadingAnchor).active = true
+        toolbar.trailingAnchor.constraintEqualToAnchor(view.trailingAnchor).active = true
+        toolbar.bottomAnchor.constraintEqualToAnchor(bottomLayoutGuide.topAnchor).active = true
+        toolbar.heightAnchor.constraintEqualToConstant(44).active = true
+    }
 
-    @IBAction func toggleRecording(sender: AnyObject) {
+    func toggleRecording(sender: AnyObject) {
         if recording {
             captureSessionCoordinator.stopRecording()
         }
@@ -38,7 +54,7 @@ class IDCaptureSessionPipelineViewController: UIViewController, IDCaptureSession
         }
     }
     
-    @IBAction func closeCamera(sender: AnyObject) {
+    func closeCamera(sender: AnyObject) {
         //TODO: tear down pipeline
         if recording {
             self.dismissing = true
