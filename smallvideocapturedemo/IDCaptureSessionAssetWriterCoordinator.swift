@@ -11,61 +11,61 @@ import MobileCoreServices
 
 // internal state machine
 enum RecordingStatus : Int {
-    case Idle = 0
-    case StartingRecording
-    case Recording
-    case StoppingRecording
+    case idle = 0
+    case startingRecording
+    case recording
+    case stoppingRecording
     
     init() {
-        self = .Idle
+        self = .idle
     }
 }
 
 class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAssetWriterCoordinatorDelegate,  AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
     
-    var videoDataOutputQueue: dispatch_queue_t = dispatch_queue_create("com.example.capturesession.videodata", DISPATCH_QUEUE_SERIAL)
-    var audioDataOutputQueue: dispatch_queue_t = dispatch_queue_create("com.example.capturesession.audiodata", DISPATCH_QUEUE_SERIAL)
+    var videoDataOutputQueue: DispatchQueue = DispatchQueue(label: "com.example.capturesession.videodata", attributes: [])
+    var audioDataOutputQueue: DispatchQueue = DispatchQueue(label: "com.example.capturesession.audiodata", attributes: [])
     var recordingStatus: RecordingStatus = RecordingStatus()
     
     var assetWriterCoordinator: IDAssetWriterCoordinator!
-    var outputVideoFormatDescription: CMFormatDescriptionRef!
-    var outputAudioFormatDescription: CMFormatDescriptionRef!
-    var recordingURL: NSURL!
+    var outputVideoFormatDescription: CMFormatDescription!
+    var outputAudioFormatDescription: CMFormatDescription!
+    var recordingURL: URL!
     
-    private var videoDataOutput: AVCaptureVideoDataOutput!
-    private var audioDataOutput: AVCaptureAudioDataOutput!
-    private var audioConnection: AVCaptureConnection!
-    private var videoConnection: AVCaptureConnection!
-    private var videoCompressionSettings: [String : AnyObject]!
-    private var audioCompressionSettings: [String : AnyObject]!
+    fileprivate var videoDataOutput: AVCaptureVideoDataOutput!
+    fileprivate var audioDataOutput: AVCaptureAudioDataOutput!
+    fileprivate var audioConnection: AVCaptureConnection!
+    fileprivate var videoConnection: AVCaptureConnection!
+    fileprivate var videoCompressionSettings: [String : AnyObject]!
+    fileprivate var audioCompressionSettings: [String : AnyObject]!
     
-    private let lockQueue = dispatch_queue_create("com.test.LockQueue", nil)
+    fileprivate let lockQueue = DispatchQueue(label: "com.test.LockQueue", attributes: [])
     
     override init() {
         super.init()
         
-        dispatch_set_target_queue(videoDataOutputQueue, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0))
+//        videoDataOutputQueue.setTarget(queue: DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.high))
         self.addDataOutputsToCaptureSession(self.captureSession)
     }
     
     // MARK: - Recording
     override func startRecording() {
         print("startRecording")
-        dispatch_sync(lockQueue) {
-            if self.recordingStatus != RecordingStatus.Idle {
-                NSException(name: NSInternalInconsistencyException, reason: "Already recording", userInfo: nil).raise()
+        lockQueue.sync {
+            if self.recordingStatus != RecordingStatus.idle {
+                NSException(name: NSExceptionName.internalInconsistencyException, reason: "Already recording", userInfo: nil).raise()
                 return
             }
-            self.transitionToRecordingStatus(RecordingStatus.StartingRecording, error: nil)
+            self.transitionToRecordingStatus(RecordingStatus.startingRecording, error: nil)
         }
         let fm: IDFileManager = IDFileManager()
-        self.recordingURL = fm.tempFileURL()
-        self.assetWriterCoordinator = IDAssetWriterCoordinator(URL: recordingURL)
+        self.recordingURL = fm.tempFileURL() as URL!
+        self.assetWriterCoordinator = IDAssetWriterCoordinator(URL: recordingURL as URL)
         if outputAudioFormatDescription != nil {
             assetWriterCoordinator.addAudioTrackWithSourceFormatDescription(self.outputAudioFormatDescription, settings: audioCompressionSettings)
         }
         assetWriterCoordinator.addVideoTrackWithSourceFormatDescription(self.outputVideoFormatDescription, settings: videoCompressionSettings)
-        let callbackQueue: dispatch_queue_t = dispatch_queue_create("com.example.capturesession.writercallback", DISPATCH_QUEUE_SERIAL)
+        let callbackQueue: DispatchQueue = DispatchQueue(label: "com.example.capturesession.writercallback", attributes: [])
 
         // guarantee ordering of callbacks with a serial queue
         assetWriterCoordinator.setDelegate(self, callbackQueue: callbackQueue)
@@ -82,11 +82,11 @@ class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAss
     
     override func stopRecording() {
         print("stoprecording")
-        dispatch_sync(lockQueue) {
-            if self.recordingStatus != RecordingStatus.Recording {
+        lockQueue.sync {
+            if self.recordingStatus != RecordingStatus.recording {
                 return
             }
-            self.transitionToRecordingStatus(RecordingStatus.StoppingRecording, error: nil)
+            self.transitionToRecordingStatus(RecordingStatus.stoppingRecording, error: nil)
         }
 
         if let _ = self.assetWriterCoordinator {
@@ -101,7 +101,7 @@ class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAss
     
     // MARK: - Private methods
     
-    func addDataOutputsToCaptureSession(captureSession: AVCaptureSession) {
+    func addDataOutputsToCaptureSession(_ captureSession: AVCaptureSession) {
         self.videoDataOutput = AVCaptureVideoDataOutput()
         self.videoDataOutput.videoSettings = nil
         self.videoDataOutput.alwaysDiscardsLateVideoFrames = false
@@ -109,36 +109,38 @@ class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAss
         self.audioDataOutput = AVCaptureAudioDataOutput()
         audioDataOutput.setSampleBufferDelegate(self, queue: audioDataOutputQueue)
         self.addOutput(videoDataOutput, toCaptureSession: self.captureSession)
-        self.videoConnection = videoDataOutput.connectionWithMediaType(AVMediaTypeVideo)
+        self.videoConnection = videoDataOutput.connection(with: AVMediaType.video)
         self.addOutput(audioDataOutput, toCaptureSession: self.captureSession)
-        self.audioConnection = audioDataOutput.connectionWithMediaType(AVMediaTypeAudio)
+        self.audioConnection = audioDataOutput.connection(with: AVMediaType.audio)
         self.setCompressionSettings()
     }
 
     func setCompressionSettings() {
-        self.videoCompressionSettings = videoDataOutput.recommendedVideoSettingsForAssetWriterWithOutputFileType(AVFileTypeQuickTimeMovie) as! [String: AnyObject]
-        self.audioCompressionSettings = audioDataOutput.recommendedAudioSettingsForAssetWriterWithOutputFileType(AVFileTypeQuickTimeMovie) as! [String: AnyObject]
+        self.videoCompressionSettings = videoDataOutput.recommendedVideoSettingsForAssetWriter(writingTo: AVFileType.mov)! as [String: AnyObject]
+        self.audioCompressionSettings = audioDataOutput.recommendedAudioSettingsForAssetWriter(writingTo: AVFileType.mov) as! [String: AnyObject]
     }
     
-    func setupVideoPipelineWithInputFormatDescription(inputFormatDescription: CMFormatDescriptionRef) {
+    func setupVideoPipelineWithInputFormatDescription(_ inputFormatDescription: CMFormatDescription) {
         self.outputVideoFormatDescription = inputFormatDescription
     }
     
     // MARK: - SampleBufferDelegate methods
-    func captureOutput(captureOutput: AVCaptureOutput, didOutputSampleBuffer sampleBuffer: CMSampleBufferRef, fromConnection connection: AVCaptureConnection) {
+    func captureOutput(_ captureOutput: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         
-        let formatDescription: CMFormatDescriptionRef = CMSampleBufferGetFormatDescription(sampleBuffer)!
+        let formatDescription: CMFormatDescription = CMSampleBufferGetFormatDescription(sampleBuffer)!
         if connection == videoConnection {
             if self.outputVideoFormatDescription == nil {
                 // Don't render the first sample buffer.
                 // This gives us one frame interval (33ms at 30fps) for setupVideoPipelineWithInputFormatDescription: to complete.
                 // Ideally this would be done asynchronously to ensure frames don't back up on slower devices.
+                //TODO: outputVideoFormatDescription should be updated whenever video configuration is changed (frame rate, etc.)
+                //Currently we don't use the outputVideoFormatDescription in IDAssetWriterRecoredSession
                 self.setupVideoPipelineWithInputFormatDescription(formatDescription)
             }
             else {
                 self.outputVideoFormatDescription = formatDescription
-                dispatch_sync(lockQueue) {
-                    if self.recordingStatus == RecordingStatus.Recording {
+                lockQueue.sync {
+                    if self.recordingStatus == RecordingStatus.recording {
                         self.assetWriterCoordinator.appendVideoSampleBuffer(sampleBuffer)
                     }
                 }
@@ -146,8 +148,8 @@ class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAss
         }
         else if connection == audioConnection {
             self.outputAudioFormatDescription = formatDescription
-            dispatch_sync(lockQueue) {
-                if self.recordingStatus == RecordingStatus.Recording {
+            lockQueue.sync {
+                if self.recordingStatus == RecordingStatus.recording {
                     self.assetWriterCoordinator.appendAudioSampleBuffer(sampleBuffer)
                 }
             }
@@ -156,60 +158,60 @@ class IDCaptureSessionAssetWriterCoordinator: IDCaptureSessionCoordinator, IDAss
     }
     
     // MARK: - IDAssetWriterCoordinatorDelegate methods
-    func writerCoordinatorDidFinishPreparing(coordinator: IDAssetWriterCoordinator) {
+    func writerCoordinatorDidFinishPreparing(_ coordinator: IDAssetWriterCoordinator) {
         
-        dispatch_sync(lockQueue) {
-            if self.recordingStatus != RecordingStatus.StartingRecording {
-                NSException(name: NSInternalInconsistencyException, reason: "Expected to be in StartingRecording state", userInfo: nil).raise()
+        lockQueue.sync {
+            if self.recordingStatus != RecordingStatus.startingRecording {
+                NSException(name: NSExceptionName.internalInconsistencyException, reason: "Expected to be in StartingRecording state", userInfo: nil).raise()
                 return
             }
-            self.transitionToRecordingStatus(RecordingStatus.Recording, error: nil)
+            self.transitionToRecordingStatus(RecordingStatus.recording, error: nil)
         }
     }
     
-    func writerCoordinator(recorder: IDAssetWriterCoordinator, didFailWithError error: NSError?) {
-        dispatch_sync(lockQueue) {
+    func writerCoordinator(_ recorder: IDAssetWriterCoordinator, didFailWithError error: NSError?) {
+        lockQueue.sync {
             self.assetWriterCoordinator = nil
-            self.transitionToRecordingStatus(RecordingStatus.Idle, error: error)
+            self.transitionToRecordingStatus(RecordingStatus.idle, error: error)
         }
     }
     
-    func writerCoordinatorDidFinishRecording(coordinator: IDAssetWriterCoordinator) {
-        dispatch_sync(lockQueue) {
-            if self.recordingStatus != RecordingStatus.StoppingRecording {
-                NSException(name: NSInternalInconsistencyException, reason: "Expected to be in StoppingRecording state", userInfo: nil).raise()
+    func writerCoordinatorDidFinishRecording(_ coordinator: IDAssetWriterCoordinator) {
+        lockQueue.sync {
+            if self.recordingStatus != RecordingStatus.stoppingRecording {
+                NSException(name: NSExceptionName.internalInconsistencyException, reason: "Expected to be in StoppingRecording state", userInfo: nil).raise()
                 return
             }
             // No state transition, we are still in the process of stopping.
             // We will be stopped once we save to the assets library.
         }
         self.assetWriterCoordinator = nil
-        dispatch_sync(lockQueue) {
-            self.transitionToRecordingStatus(RecordingStatus.Idle, error: nil)
+        lockQueue.sync {
+            self.transitionToRecordingStatus(RecordingStatus.idle, error: nil)
         }
     }
 
     // MARK: - Recording State Machine
     
-    func transitionToRecordingStatus(newStatus: RecordingStatus, error: NSError?) {
+    func transitionToRecordingStatus(_ newStatus: RecordingStatus, error: NSError?) {
         print("transition status")
         let oldStatus: RecordingStatus = recordingStatus
         self.recordingStatus = newStatus
         if newStatus != oldStatus {
-            if error != nil && (newStatus == RecordingStatus.Idle) {
-                dispatch_async(self.delegateCallbackQueue!, {() -> Void in
+            if error != nil && (newStatus == RecordingStatus.idle) {
+                self.delegateCallbackQueue!.async(execute: {() -> Void in
                     self.delegate!.coordinator(self, didFinishRecordingToOutputFileURL: self.recordingURL, error: nil)
                 })
             }
             else {
                 // only the above delegate method takes an error
-                if oldStatus == RecordingStatus.StartingRecording && newStatus == RecordingStatus.Recording {
-                    dispatch_async(self.delegateCallbackQueue!, {() -> Void in
+                if oldStatus == RecordingStatus.startingRecording && newStatus == RecordingStatus.recording {
+                    self.delegateCallbackQueue!.async(execute: {() -> Void in
                         self.delegate!.coordinatorDidBeginRecording(self)
                     })
                 }
-                else if oldStatus == RecordingStatus.StoppingRecording && newStatus == RecordingStatus.Idle {
-                    dispatch_async(self.delegateCallbackQueue!, {() -> Void in
+                else if oldStatus == RecordingStatus.stoppingRecording && newStatus == RecordingStatus.idle {
+                    self.delegateCallbackQueue!.async(execute: {() -> Void in
                         self.delegate!.coordinator(self, didFinishRecordingToOutputFileURL: self.recordingURL, error: nil)
                     })
                 }

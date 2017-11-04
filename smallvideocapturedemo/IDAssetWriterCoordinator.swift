@@ -11,26 +11,26 @@ import CoreMedia
 import AVFoundation
 
 protocol IDAssetWriterCoordinatorDelegate: class {
-    func writerCoordinatorDidFinishPreparing(coordinator: IDAssetWriterCoordinator)
-    func writerCoordinator(coordinator: IDAssetWriterCoordinator, didFailWithError error: NSError?)
-    func writerCoordinatorDidFinishRecording(coordinator: IDAssetWriterCoordinator)
+    func writerCoordinatorDidFinishPreparing(_ coordinator: IDAssetWriterCoordinator)
+    func writerCoordinator(_ coordinator: IDAssetWriterCoordinator, didFailWithError error: NSError?)
+    func writerCoordinatorDidFinishRecording(_ coordinator: IDAssetWriterCoordinator)
 }
 
 // internal state machine
 enum WriterStatus : Int {
-    case Idle = 0
-    case PreparingToRecord
-    case Recording
-    case FinishingRecordingPart1
+    case idle = 0
+    case preparingToRecord
+    case recording
+    case finishingRecordingPart1
     // waiting for inflight buffers to be appended
-    case FinishingRecordingPart2
+    case finishingRecordingPart2
     // calling finish writing on the asset writer
-    case Finished
+    case finished
     // terminal state
-    case Failed
+    case failed
     
     init() {
-        self = .Idle
+        self = .idle
     }
 }
 
@@ -38,34 +38,34 @@ class IDAssetWriterCoordinator: NSObject {
     
     weak var delegate: IDAssetWriterCoordinatorDelegate?
     
-    var URL: NSURL!
-    var writingQueue: dispatch_queue_t = dispatch_queue_create("com.example.assetwriter.writing", DISPATCH_QUEUE_SERIAL)
-    var videoTrackTransform: CGAffineTransform! = CGAffineTransformMakeRotation(CGFloat(M_PI_2)) //portrait orientation
+    var URL: Foundation.URL!
+    var writingQueue: DispatchQueue = DispatchQueue(label: "com.example.assetwriter.writing", attributes: [])
+    var videoTrackTransform: CGAffineTransform! = CGAffineTransform(rotationAngle: CGFloat(M_PI_2)) //portrait orientation
     var status: WriterStatus = WriterStatus()
     var haveStartedSession: Bool = false
     
     var error: NSError?
-    var delegateCallbackQueue: dispatch_queue_t!
+    var delegateCallbackQueue: DispatchQueue!
     var assetWriter: AVAssetWriter!
-    var audioTrackSourceFormatDescription: CMFormatDescriptionRef!
+    var audioTrackSourceFormatDescription: CMFormatDescription!
     var audioTrackSettings: [String: AnyObject]!
     var audioInput: AVAssetWriterInput!
-    var videoTrackSourceFormatDescription: CMFormatDescriptionRef!
+    var videoTrackSourceFormatDescription: CMFormatDescription!
     var videoTrackSettings: [String : AnyObject]!
     var videoInput: AVAssetWriterInput!
     
-    let lockQueue = dispatch_queue_create("com.test.LockQueue", nil)
+    let lockQueue = DispatchQueue(label: "com.test.LockQueue", attributes: [])
     
-    init(URL: NSURL) {
+    init(URL: Foundation.URL) {
         super.init()
         self.URL = URL
     }
     
-    func addVideoTrackWithSourceFormatDescription(formatDescription: CMFormatDescriptionRef, settings videoSettings: [String : AnyObject]) {
+    func addVideoTrackWithSourceFormatDescription(_ formatDescription: CMFormatDescription, settings videoSettings: [String : AnyObject]) {
         
-        dispatch_sync(lockQueue) {
-            if self.status != WriterStatus.Idle {
-                NSException(name: NSInvalidArgumentException, reason: "Cannot add tracks while not idle", userInfo: nil).raise()
+        lockQueue.sync {
+            if self.status != WriterStatus.idle {
+                NSException(name: NSExceptionName.invalidArgumentException, reason: "Cannot add tracks while not idle", userInfo: nil).raise()
                 return
             }
 
@@ -74,17 +74,17 @@ class IDAssetWriterCoordinator: NSObject {
         }
     }
     
-    func addAudioTrackWithSourceFormatDescription(formatDescription: CMFormatDescriptionRef, settings audioSettings: [String : AnyObject]) {
+    func addAudioTrackWithSourceFormatDescription(_ formatDescription: CMFormatDescription, settings audioSettings: [String : AnyObject]) {
         
-        dispatch_sync(lockQueue) {
+        lockQueue.sync {
             self.audioTrackSourceFormatDescription = formatDescription
             self.audioTrackSettings = audioSettings
         }
     }
     
-    func setDelegate(delegate: IDAssetWriterCoordinatorDelegate, callbackQueue delegateCallbackQueue: dispatch_queue_t) {
+    func setDelegate(_ delegate: IDAssetWriterCoordinatorDelegate, callbackQueue delegateCallbackQueue: DispatchQueue) {
 
-        dispatch_sync(lockQueue) {
+        lockQueue.sync {
             self.delegate = delegate
             self.delegateCallbackQueue = delegateCallbackQueue
         }
@@ -92,104 +92,104 @@ class IDAssetWriterCoordinator: NSObject {
     
     func prepareToRecord(){
         print("prepareToRecord")
-        dispatch_sync(lockQueue) {
-            if self.status != WriterStatus.Idle {
-                NSException(name: NSInternalInconsistencyException, reason: "Already prepared, cannot prepare again", userInfo: nil).raise()
+        lockQueue.sync {
+            if self.status != WriterStatus.idle {
+                NSException(name: NSExceptionName.internalInconsistencyException, reason: "Already prepared, cannot prepare again", userInfo: nil).raise()
                 return
             }
-            self.transitionToStatus(WriterStatus.PreparingToRecord, error: nil)
+            self.transitionToStatus(WriterStatus.preparingToRecord, error: nil)
         }
         
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), {
+        DispatchQueue.global(priority: DispatchQueue.GlobalQueuePriority.low).async(execute: {
             // AVAssetWriter will not write over an existing file.
             do {
-                try NSFileManager.defaultManager().removeItemAtURL(self.URL)
+                try FileManager.default.removeItem(at: self.URL)
             } catch _ {
                 print(self.error?.localizedDescription)
             }
             
             do {
-                self.assetWriter = try AVAssetWriter(URL: self.URL, fileType: AVFileTypeQuickTimeMovie)
+                self.assetWriter = try AVAssetWriter(outputURL: self.URL, fileType: AVFileType.mov)
             } catch _ {
                 print(self.error?.localizedDescription)
             }
             
             // Create and add inputs
             if (self.error == nil) && (self.videoTrackSourceFormatDescription != nil) {
-                if self.assetWriter.canApplyOutputSettings(self.videoTrackSettings, forMediaType: AVMediaTypeVideo) {
-                    self.videoInput = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: self.videoTrackSettings, sourceFormatHint: self.videoTrackSourceFormatDescription)
+                if self.assetWriter.canApply(outputSettings: self.videoTrackSettings, forMediaType: AVMediaType.video) {
+                    self.videoInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: self.videoTrackSettings, sourceFormatHint: self.videoTrackSourceFormatDescription)
                     self.videoInput.transform = self.videoTrackTransform
                     self.videoInput.expectsMediaDataInRealTime = true
-                    if self.assetWriter.canAddInput(self.videoInput) {
-                        self.assetWriter.addInput(self.videoInput)
+                    if self.assetWriter.canAdd(self.videoInput) {
+                        self.assetWriter.add(self.videoInput)
                     }
                 }
             }
             if (self.error == nil) && (self.audioTrackSourceFormatDescription != nil) {
-                if self.assetWriter.canApplyOutputSettings(self.audioTrackSettings, forMediaType: AVMediaTypeAudio) {
-                    self.audioInput = AVAssetWriterInput(mediaType: AVMediaTypeAudio, outputSettings: self.audioTrackSettings, sourceFormatHint: self.audioTrackSourceFormatDescription)
+                if self.assetWriter.canApply(outputSettings: self.audioTrackSettings, forMediaType: AVMediaType.audio) {
+                    self.audioInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: self.audioTrackSettings, sourceFormatHint: self.audioTrackSourceFormatDescription)
                     self.audioInput.expectsMediaDataInRealTime = true
-                    if self.assetWriter.canAddInput(self.audioInput) {
-                        self.assetWriter.addInput(self.audioInput)
+                    if self.assetWriter.canAdd(self.audioInput) {
+                        self.assetWriter.add(self.audioInput)
                     }
                 }
             }
             if (self.error == nil) {
                 let success: Bool = self.assetWriter.startWriting()
                 if !success {
-                    self.error = self.assetWriter.error
+                    self.error = self.assetWriter.error as! NSError
                 }
             }
-            dispatch_sync(self.lockQueue) {
+            let lockQueue = DispatchQueue(label: "com.test.LockQueue", attributes: [])
+            lockQueue.sync {
                 if self.error != nil {
-                    self.transitionToStatus(WriterStatus.Failed, error: self.error!)
+                    self.transitionToStatus(WriterStatus.failed, error: self.error!)
                 }
                 else {
-                    self.transitionToStatus(WriterStatus.Recording, error: nil)
+                    self.transitionToStatus(WriterStatus.recording, error: nil)
                 }
             }
         })
     }
     
     func finishRecording() {
-        dispatch_sync(lockQueue) {
+        lockQueue.sync {
             var shouldFinishRecording: Bool = false
             switch self.status {
-                case WriterStatus.Idle, WriterStatus.PreparingToRecord, WriterStatus.FinishingRecordingPart1, WriterStatus.FinishingRecordingPart2, WriterStatus.Finished:
-                    NSException(name: NSInternalInconsistencyException, reason: "Not recording", userInfo: nil).raise()
-                case WriterStatus.Failed:
+                case WriterStatus.idle, WriterStatus.preparingToRecord, WriterStatus.finishingRecordingPart1, WriterStatus.finishingRecordingPart2, WriterStatus.finished:
+                    NSException(name: NSExceptionName.internalInconsistencyException, reason: "Not recording", userInfo: nil).raise()
+                case WriterStatus.failed:
                     // From the client's perspective the movie recorder can asynchronously transition to an error state as the result of an append.
                     // Because of this we are lenient when finishRecording is called and we are in an error state.
                     print("Recording has failed, nothing to do")
-                case WriterStatus.Recording:
+                case WriterStatus.recording:
                     shouldFinishRecording = true
             }
             
             if shouldFinishRecording {
-                self.transitionToStatus(WriterStatus.FinishingRecordingPart1, error: nil)
+                self.transitionToStatus(WriterStatus.finishingRecordingPart1, error: nil)
             }
             else {
                 return
             }
         }
-        dispatch_async(writingQueue, {() -> Void in
-            dispatch_sync(self.lockQueue) {
+        writingQueue.async(execute: {() -> Void in
+            self.lockQueue.sync {
                 // We may have transitioned to an error state as we appended inflight buffers. In that case there is nothing to do now.
-                if self.status != WriterStatus.FinishingRecordingPart1 {
+                if self.status != WriterStatus.finishingRecordingPart1 {
                     return
                 }
                 // It is not safe to call -[AVAssetWriter finishWriting*] concurrently with -[AVAssetWriterInput appendSampleBuffer:]
                 // We transition to MovieRecorderStatusFinishingRecordingPart2 while on _writingQueue, which guarantees that no more buffers will be appended.
-                self.transitionToStatus(WriterStatus.FinishingRecordingPart2, error: nil)
+                self.transitionToStatus(WriterStatus.finishingRecordingPart2, error: nil)
             }
-            self.assetWriter.finishWritingWithCompletionHandler({() -> Void in
-                dispatch_sync(self.lockQueue) {
-                    let error: NSError? = self.assetWriter.error
-                    if error != nil {
-                        self.transitionToStatus(WriterStatus.Failed, error: error)
+            self.assetWriter.finishWriting(completionHandler: {() -> Void in
+                self.lockQueue.sync {
+                    if let error =  self.assetWriter.error {
+                        self.transitionToStatus(WriterStatus.failed, error: error as NSError)
                     }
                     else {
-                        self.transitionToStatus(WriterStatus.Finished, error: nil)
+                        self.transitionToStatus(WriterStatus.finished, error: nil)
                     }
                 }
             })
@@ -197,76 +197,74 @@ class IDAssetWriterCoordinator: NSObject {
         })
     }
     
-    func appendVideoSampleBuffer(sampleBuffer: CMSampleBufferRef) {
-        self.appendSampleBuffer(sampleBuffer, ofMediaType: AVMediaTypeVideo)
+    func appendVideoSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
+        self.appendSampleBuffer(sampleBuffer, ofMediaType: AVMediaType.video.rawValue)
     }
     
-    func appendAudioSampleBuffer(sampleBuffer: CMSampleBufferRef) {
-        self.appendSampleBuffer(sampleBuffer, ofMediaType: AVMediaTypeAudio)
+    func appendAudioSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
+        self.appendSampleBuffer(sampleBuffer, ofMediaType: AVMediaType.audio.rawValue)
     }
     
     // MARK: - Private methods
     
-    func appendSampleBuffer(sampleBuffer: CMSampleBufferRef, ofMediaType mediaType: String) {
-        dispatch_sync(lockQueue) {
-            if self.status.rawValue < WriterStatus.Recording.rawValue {
-                NSException(name: NSInternalInconsistencyException, reason: "Not ready to record yet", userInfo: nil).raise()
+    func appendSampleBuffer(_ sampleBuffer: CMSampleBuffer, ofMediaType mediaType: String) {
+        lockQueue.sync {
+            if self.status.rawValue < WriterStatus.recording.rawValue {
+                NSException(name: NSExceptionName.internalInconsistencyException, reason: "Not ready to record yet", userInfo: nil).raise()
                 return
             }
         }
-        dispatch_async(writingQueue, {() -> Void in
-            if !self.haveStartedSession && mediaType == AVMediaTypeVideo {
-                self.assetWriter.startSessionAtSourceTime(CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+        writingQueue.async(execute: {() -> Void in
+            self.lockQueue.sync {
+//                    // From the client's perspective the movie recorder can asynchronously transition to an error state as the result of an append.
+//                    // Because of this we are lenient when samples are appended and we are no longer recording.
+//                    // Instead of throwing an exception we just release the sample buffers and return.
+//                    if status > WriterStatus.FinishingRecordingPart1 {
+//                        CFRelease(sampleBuffer)
+//                        return
+//                    }
+            }
+            if !self.haveStartedSession && mediaType == AVMediaType.video.rawValue {
+                self.assetWriter.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
                 self.haveStartedSession = true
             }
-            
-            let input: AVAssetWriterInput = (mediaType == AVMediaTypeVideo) ? self.videoInput : self.audioInput
-            if input.readyForMoreMediaData {
-                
-                //1. apply opencv processing to samplebuffer video frame
-                let newBufferRef = self.applyOpenCV(sampleBuffer)
-                
-                
-                //2. append processed video frame to receiver
-                let successful: Bool = input.appendSampleBuffer(sampleBuffer)
-                if !successful {
-                    self.error = self.assetWriter.error
-                    dispatch_sync(self.lockQueue) {
-                        self.transitionToStatus(WriterStatus.Failed, error: self.error)
+            let input: AVAssetWriterInput = (mediaType == AVMediaType.video.rawValue) ? self.videoInput : self.audioInput
+            if input.isReadyForMoreMediaData {
+                let success: Bool = input.append(sampleBuffer)
+                if !success {
+                    self.error = self.assetWriter.error as! NSError
+                    let lockQueue = DispatchQueue(label: "com.test.LockQueue", attributes: [])
+                    lockQueue.sync {
+                        self.transitionToStatus(WriterStatus.failed, error: self.error)
                     }
                 }
-                
-                //encode videos to mp4 or ts in 5 second chunks to server
-                if successful && CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds > 5.0 {
-                    
-                }
-                
-            }else {
+            }
+            else {
                 print("\(mediaType) input not ready for more media data, dropping buffer")
             }
         })
     }
     
-    func transitionToStatus(newStatus: WriterStatus, error: NSError?) {
+    func transitionToStatus(_ newStatus: WriterStatus, error: NSError?) {
         var shouldNotifyDelegate: Bool = false
         if newStatus != status {
             // terminal states
-            if (newStatus == WriterStatus.Finished) || (newStatus == WriterStatus.Failed) {
+            if (newStatus == WriterStatus.finished) || (newStatus == WriterStatus.failed) {
                 shouldNotifyDelegate = true
                 // make sure there are no more sample buffers in flight before we tear down the asset writer and inputs
-                dispatch_async(writingQueue, {() -> Void in
+                writingQueue.async(execute: {() -> Void in
                     self.assetWriter = nil
                     self.videoInput = nil
                     self.audioInput = nil
-                    if newStatus == WriterStatus.Failed {
+                    if newStatus == WriterStatus.failed {
                         do {
-                            try NSFileManager.defaultManager().removeItemAtURL(self.URL)
+                            try FileManager.default.removeItem(at: self.URL)
                         } catch _ {
                             print("NSFileManager.defaultManager().removeItemAtURL error: \(error?.localizedDescription)")
                         }
                     }
                 })
-            } else if newStatus == WriterStatus.Recording {
+            } else if newStatus == WriterStatus.recording {
                 shouldNotifyDelegate = true
             }
             
@@ -274,15 +272,15 @@ class IDAssetWriterCoordinator: NSObject {
         }
         
         if (shouldNotifyDelegate) {
-            dispatch_async(delegateCallbackQueue, {() -> Void in
+            delegateCallbackQueue.async(execute: {() -> Void in
                 switch newStatus {
-                case WriterStatus.Recording:
+                case WriterStatus.recording:
                     print("writerCoordinatorDidFinishPreparing")
                     self.delegate!.writerCoordinatorDidFinishPreparing(self)
-                case WriterStatus.Finished:
+                case WriterStatus.finished:
                     print("writerCoordinatorDidFinishRecording")
                     self.delegate!.writerCoordinatorDidFinishRecording(self)
-                case WriterStatus.Failed:
+                case WriterStatus.failed:
                     print("writerCoordinator")
                     self.delegate!.writerCoordinator(self, didFailWithError: error)
                 default:
@@ -294,8 +292,4 @@ class IDAssetWriterCoordinator: NSObject {
         }
     }
 
-    func applyOpenCV(sampleBuffer: CMSampleBufferRef){
-        let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-        
-    }
 }

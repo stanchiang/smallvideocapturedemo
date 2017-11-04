@@ -12,49 +12,49 @@ class IDFileManager: NSObject {
     
     var error:NSError?
     
-    func tempFileURL() -> NSURL {
+    func tempFileURL() -> URL {
         var path: String? = nil
-        let fm: NSFileManager = NSFileManager.defaultManager()
+        let fm: FileManager = FileManager.default
         var i: Int = 0
-        while path == nil || fm.fileExistsAtPath(path!) {
+        while path == nil || fm.fileExists(atPath: path!) {
             path = "\(NSTemporaryDirectory())\(Int(i)).mov"
             i += 1
         }
-        return NSURL.fileURLWithPath(path!)
+        return URL(fileURLWithPath: path!)
     }
 
-    func removeFile(fileURL: NSURL) {
-        let filePath: String = fileURL.path!
-        let fileManager: NSFileManager = NSFileManager.defaultManager()
-        if fileManager.fileExistsAtPath(filePath) {
+    func removeFile(_ fileURL: URL) {
+        let filePath: String = fileURL.path
+        let fileManager: FileManager = FileManager.default
+        if fileManager.fileExists(atPath: filePath) {
             do {
-                try fileManager.removeItemAtPath(filePath)
+                try fileManager.removeItem(atPath: filePath)
             } catch _ {
                 print("error removing file: \(error?.localizedDescription)")
             }
         }
     }
 
-    func copyFileToDocuments(fileURL: NSURL) {
-        let documentsDirectory: String = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0]
-        let dateFormatter: NSDateFormatter = NSDateFormatter()
+    func copyFileToDocuments(_ fileURL: URL) {
+        let documentsDirectory: String = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+        let dateFormatter: DateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let destinationPath: String = documentsDirectory.stringByAppendingFormat("/output_%@.mov", dateFormatter.stringFromDate(NSDate()))
+        let destinationPath: String = documentsDirectory.appendingFormat("/output_%@.mov", dateFormatter.string(from: Date()))
         do {
-            try NSFileManager.defaultManager().copyItemAtURL(fileURL, toURL: NSURL.fileURLWithPath(destinationPath))
+            try FileManager.default.copyItem(at: fileURL, to: URL(fileURLWithPath: destinationPath))
         } catch _ {
             print("error copying file: \(error?.localizedDescription)")
         }
     }
 
-    func copyFileToCameraRoll(fileURL: NSURL) {
+    func copyFileToCameraRoll(_ fileURL: URL) {
         let library: ALAssetsLibrary = ALAssetsLibrary()
-        if !library.videoAtPathIsCompatibleWithSavedPhotosAlbum(fileURL) {
+        if !library.videoAtPathIs(compatibleWithSavedPhotosAlbum: fileURL) {
             print("video incompatible with camera roll")
         }
-        library.writeVideoAtPathToSavedPhotosAlbum(fileURL, completionBlock: {(assetURL, error) in
+        library.writeVideoAtPath(toSavedPhotosAlbum: fileURL, completionBlock: {(assetURL, error) in
             if error != nil {
-                print("Error: Domain = \(error.domain), Code = \(error.localizedDescription)")
+                print("Error: Code = \(error?.localizedDescription)")
             }
             else if assetURL == nil {
                 //It's possible for writing to camera roll to fail, without receiving an error message, but assetURL will be nil
@@ -64,9 +64,9 @@ class IDFileManager: NSObject {
             else {
                     //remove temp file
                 do {
-                    try NSFileManager.defaultManager().removeItemAtURL(fileURL)
+                    try FileManager.default.removeItem(at: fileURL)
                 } catch _ {
-                    print("error: \(error.localizedDescription)")
+                    print("error: \(error?.localizedDescription)")
                 }
             }
         })

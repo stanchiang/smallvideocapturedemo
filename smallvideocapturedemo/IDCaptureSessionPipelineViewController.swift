@@ -19,34 +19,34 @@ class IDCaptureSessionPipelineViewController: UIViewController, IDCaptureSession
     let toolbar = UIToolbar()
     
     override func viewDidLoad() {
-        let spacer = UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: self, action: nil)
-        recordButton = UIBarButtonItem(title: "Record", style: UIBarButtonItemStyle.Plain, target: self, action: #selector(toggleRecording(_:)))
-        closeButton = UIBarButtonItem(title: "Close", style: UIBarButtonItemStyle.Plain, target: self, action: #selector(closeCamera(_:)))
+        let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
+        recordButton = UIBarButtonItem(title: "Record", style: UIBarButtonItemStyle.plain, target: self, action: #selector(toggleRecording(_:)))
+        closeButton = UIBarButtonItem(title: "Close", style: UIBarButtonItemStyle.plain, target: self, action: #selector(closeCamera(_:)))
         
         toolbar.translatesAutoresizingMaskIntoConstraints = false
-        toolbar.items = [spacer, closeButton, spacer, recordButton, spacer]
+        toolbar.items = [spacer, spacer, spacer, recordButton, spacer]
         view.addSubview(toolbar)
         
         self.checkPermissions()
-        captureSessionCoordinator.setDelegate(self, callbackQueue: dispatch_get_main_queue())
+        captureSessionCoordinator.setDelegate(self, callbackQueue: DispatchQueue.main)
         self.configureInterface()
     }
     
     override func viewDidLayoutSubviews() {
-        toolbar.leadingAnchor.constraintEqualToAnchor(view.leadingAnchor).active = true
-        toolbar.trailingAnchor.constraintEqualToAnchor(view.trailingAnchor).active = true
-        toolbar.bottomAnchor.constraintEqualToAnchor(bottomLayoutGuide.topAnchor).active = true
-        toolbar.heightAnchor.constraintEqualToConstant(44).active = true
+        toolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        toolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        toolbar.bottomAnchor.constraint(equalTo: bottomLayoutGuide.topAnchor).isActive = true
+        toolbar.heightAnchor.constraint(equalToConstant: 44).isActive = true
     }
 
-    func toggleRecording(sender: AnyObject) {
+    @objc func toggleRecording(_ sender: AnyObject) {
         if recording {
             captureSessionCoordinator.stopRecording()
         }
         else {
             // Disable the idle timer while recording
-            UIApplication.sharedApplication().idleTimerDisabled = true
-            self.recordButton.enabled = false
+            UIApplication.shared.isIdleTimerDisabled = true
+            self.recordButton.isEnabled = false
             // re-enabled once recording has finished starting
             self.recordButton.title = "Stop"
             self.captureSessionCoordinator.startRecording()
@@ -54,7 +54,7 @@ class IDCaptureSessionPipelineViewController: UIViewController, IDCaptureSession
         }
     }
     
-    func closeCamera(sender: AnyObject) {
+    @objc func closeCamera(_ sender: AnyObject) {
         //TODO: tear down pipeline
         if recording {
             self.dismissing = true
@@ -68,13 +68,16 @@ class IDCaptureSessionPipelineViewController: UIViewController, IDCaptureSession
     func configureInterface() {
         let previewLayer: AVCaptureVideoPreviewLayer = captureSessionCoordinator.previewLayer
         previewLayer.frame = self.view.bounds
-        self.view.layer.insertSublayer(previewLayer, atIndex: 0)
+        self.view.layer.insertSublayer(previewLayer, at: 0)
         captureSessionCoordinator.startRunning()
     }
     
     func stopPipelineAndDismiss() {
         captureSessionCoordinator.stopRunning()
-        self.dismissViewControllerAnimated(true, completion: { _ in })
+//        self.dismiss(animated: true, completion: { _ in })
+        self.dismiss(animated: true) {
+            
+        }
         self.dismissing = false
     }
     
@@ -94,12 +97,12 @@ class IDCaptureSessionPipelineViewController: UIViewController, IDCaptureSession
 
     // MARK: = IDCaptureSessionCoordinatorDelegate methods
     
-    func coordinatorDidBeginRecording(coordinator: IDCaptureSessionCoordinator) {
-        self.recordButton.enabled = true
+    func coordinatorDidBeginRecording(_ coordinator: IDCaptureSessionCoordinator) {
+        self.recordButton.isEnabled = true
     }
     
-    func coordinator(coordinator: IDCaptureSessionCoordinator, didFinishRecordingToOutputFileURL outputFileURL: NSURL, error: NSError?) {
-        UIApplication.sharedApplication().idleTimerDisabled = false
+    func coordinator(_ coordinator: IDCaptureSessionCoordinator, didFinishRecordingToOutputFileURL outputFileURL: URL, error: NSError?) {
+        UIApplication.shared.isIdleTimerDisabled = false
         self.recordButton.title = "Record"
         self.recording = false
         //Do something useful with the video file available at the outputFileURL

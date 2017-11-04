@@ -10,16 +10,16 @@ import Foundation
 import AVFoundation
 
 protocol IDCaptureSessionCoordinatorDelegate: class {
-    func coordinatorDidBeginRecording(coordinator: IDCaptureSessionCoordinator)
-    func coordinator(coordinator: IDCaptureSessionCoordinator, didFinishRecordingToOutputFileURL outputFileURL: NSURL, error: NSError?)
+    func coordinatorDidBeginRecording(_ coordinator: IDCaptureSessionCoordinator)
+    func coordinator(_ coordinator: IDCaptureSessionCoordinator, didFinishRecordingToOutputFileURL outputFileURL: URL, error: NSError?)
 }
 
 class IDCaptureSessionCoordinator: NSObject {
     
     weak var delegate: IDCaptureSessionCoordinatorDelegate?
-    var sessionQueue: dispatch_queue_t = dispatch_queue_create("com.example.capturepipeline.session", DISPATCH_QUEUE_SERIAL)
+    var sessionQueue: DispatchQueue = DispatchQueue(label: "com.example.capturepipeline.session", attributes: [])
     
-    var delegateCallbackQueue: dispatch_queue_t?
+    var delegateCallbackQueue: DispatchQueue?
     var previewLayer: AVCaptureVideoPreviewLayer!
     var captureSession: AVCaptureSession!
     var cameraDevice: AVCaptureDevice!
@@ -31,22 +31,22 @@ class IDCaptureSessionCoordinator: NSObject {
         previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
     }
     
-    func setDelegate(delegate: IDCaptureSessionCoordinatorDelegate, callbackQueue delegateCallbackQueue: dispatch_queue_t) {
-        let lockQueue = dispatch_queue_create("com.test.LockQueue", nil)
-        dispatch_sync(lockQueue) {
+    func setDelegate(_ delegate: IDCaptureSessionCoordinatorDelegate, callbackQueue delegateCallbackQueue: DispatchQueue) {
+        let lockQueue = DispatchQueue(label: "com.test.LockQueue", attributes: [])
+        lockQueue.sync {
             self.delegate = delegate
             self.delegateCallbackQueue = delegateCallbackQueue
         }
     }
     
     func startRunning() {
-        dispatch_sync(sessionQueue, {() -> Void in
+        sessionQueue.sync(execute: {() -> Void in
             self.captureSession.startRunning()
         })
     }
     
     func stopRunning() {
-        dispatch_sync(sessionQueue, {() -> Void in
+        sessionQueue.sync(execute: {() -> Void in
             // the captureSessionDidStopRunning method will stop recording if necessary as well, but we do it here so that the last video and audio samples are better aligned
             self.stopRecording()
             // does nothing if we aren't currently recording
@@ -62,7 +62,7 @@ class IDCaptureSessionCoordinator: NSObject {
 //        print("stop Recording super class")
     }
     
-    func addInput(input: AVCaptureDeviceInput, toCaptureSession captureSession: AVCaptureSession) -> Bool {
+    func addInput(_ input: AVCaptureDeviceInput, toCaptureSession captureSession: AVCaptureSession) -> Bool {
         if captureSession.canAddInput(input) {
             captureSession.addInput(input)
             return true
@@ -73,7 +73,7 @@ class IDCaptureSessionCoordinator: NSObject {
         }
     }
     
-    func addOutput(output: AVCaptureOutput, toCaptureSession captureSession: AVCaptureSession) -> Bool {
+    func addOutput(_ output: AVCaptureOutput, toCaptureSession captureSession: AVCaptureSession) -> Bool {
         if captureSession.canAddOutput(output) {
             captureSession.addOutput(output)
             return true
@@ -98,10 +98,10 @@ class IDCaptureSessionCoordinator: NSObject {
         return captureSession
     }
     
-    func addDefaultCameraInputToCaptureSession(captureSession: AVCaptureSession) -> Bool {
+    func addDefaultCameraInputToCaptureSession(_ captureSession: AVCaptureSession) -> Bool {
         let cameraDeviceInput: AVCaptureDeviceInput!
         do {
-            cameraDeviceInput = try AVCaptureDeviceInput(device: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo))
+            cameraDeviceInput = try AVCaptureDeviceInput(device: AVCaptureDevice.default(for: AVMediaType.video)!)
             let success: Bool = self.addInput(cameraDeviceInput, toCaptureSession: captureSession)
             self.cameraDevice = cameraDeviceInput.device
             return success
@@ -111,11 +111,11 @@ class IDCaptureSessionCoordinator: NSObject {
         }
     }
     
-    func addDefaultMicInputToCaptureSession(captureSession: AVCaptureSession) -> Bool {
+    func addDefaultMicInputToCaptureSession(_ captureSession: AVCaptureSession) -> Bool {
         let micDeviceInput: AVCaptureDeviceInput
         
         do {
-            micDeviceInput = try AVCaptureDeviceInput(device: AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeAudio))
+            micDeviceInput = try AVCaptureDeviceInput(device: AVCaptureDevice.default(for: AVMediaType.audio)!)
             let success: Bool = self.addInput(micDeviceInput, toCaptureSession: captureSession)
             return success
         } catch _ {
