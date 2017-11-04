@@ -40,7 +40,7 @@ class IDAssetWriterCoordinator: NSObject {
     
     var URL: Foundation.URL!
     var writingQueue: DispatchQueue = DispatchQueue(label: "com.example.assetwriter.writing", attributes: [])
-    var videoTrackTransform: CGAffineTransform! = CGAffineTransform(rotationAngle: CGFloat(M_PI_2)) //portrait orientation
+    var videoTrackTransform: CGAffineTransform! = CGAffineTransform(rotationAngle: CGFloat(Double.pi / 2.0)) //portrait orientation
     var status: WriterStatus = WriterStatus()
     var haveStartedSession: Bool = false
     

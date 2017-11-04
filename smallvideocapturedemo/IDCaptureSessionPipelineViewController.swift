@@ -74,7 +74,6 @@ class IDCaptureSessionPipelineViewController: UIViewController, IDCaptureSession
     
     func stopPipelineAndDismiss() {
         captureSessionCoordinator.stopRunning()
-//        self.dismiss(animated: true, completion: { _ in })
         self.dismiss(animated: true) {
             
         }
